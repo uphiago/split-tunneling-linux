@@ -1,8 +1,15 @@
 #!/bin/bash
 
-LOGFILE="vpn_diagnostics.log"
+# Verifica se um argumento foi fornecido
+if [ $# -eq 0 ]; then
+    echo "Por favor, forneça um argumento de estágio: 'normal', 'nordvpn' ou 'nordvpn_openvpn'"
+    exit 1
+fi
 
-echo "Iniciando diagnósticos VPN em $(date)" | tee $LOGFILE
+# Define o arquivo de log com base no estágio fornecido
+LOGFILE="vpn_diagnostics_$1.log"
+
+echo "Iniciando diagnósticos VPN em $(date) para o estágio $1" | tee $LOGFILE
 
 echo "Verificando dependências..." | tee -a $LOGFILE
 dependencies=("openvpn" "iptables" "ip" "dig" "traceroute" "tcpdump" "curl")
@@ -34,10 +41,17 @@ done
 echo "Verificando regras de IPTables..." | tee -a $LOGFILE
 sudo iptables -t mangle -L -v | tee -a $LOGFILE
 
-echo "Monitorando o tráfego da VPN..." | tee -a $LOGFILE
-sudo tcpdump -i tun0 host $IPs -c 10 | tee -a $LOGFILE
+# Verifica se está no estágio com VPN para capturar tráfego com tcpdump
+if [ "$1" = "nordvpn_openvpn" ]; then
+    echo "Monitorando o tráfego da VPN..." | tee -a $LOGFILE
+    sudo tcpdump -i tun0 host $IPs -c 10 | tee -a $LOGFILE
+fi
 
 echo "Verificando status do OpenVPN..." | tee -a $LOGFILE
 pgrep -a openvpn | tee -a $LOGFILE
 
 echo "Testando acesso HTTP e HTTPS direto para x.com..." | tee -a $LOGFILE
+curl -v http://x.com | tee -a $LOGFILE 2>&1
+curl -v https://x.com | tee -a $LOGFILE 2>&1
+
+echo "Diagnósticos para $1 completados. Por favor, revise o arquivo $LOGFILE para mais detalhes." | tee -a $LOGFILE

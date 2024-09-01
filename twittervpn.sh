@@ -20,7 +20,8 @@ VPN_CONFIGS["vpnbook-us1-tcp443.ovpn"]="US1"
 VPN_CONFIGS["vpnbook-us2-tcp443.ovpn"]="US2"
 
 # Lista de arquivos de configuração (paths)
-VPN_FILES=("vpnbook-us1-tcp443.ovpn" "vpnbook-uk205-tcp443.ovpn" "vpnbook-ca196-tcp443.ovpn" "vpnbook-us2-tcp443.ovpn")
+VPNBOOK_DIR="/vpnbook"
+VPN_FILES=("$VPNBOOK_DIR/vpnbook-us1-tcp443.ovpn" "$VPNBOOK_DIR/vpnbook-uk205-tcp443.ovpn" "$VPNBOOK_DIR/vpnbook-ca196-tcp443.ovpn" "$VPNBOOK_DIR/vpnbook-us2-tcp443.ovpn")
 CURRENT_VPN_INDEX=0
 
 # Configurações básicas da VPN

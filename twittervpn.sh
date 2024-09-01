@@ -1,7 +1,7 @@
 #!/bin/bash
 
 check_dependencies() {
-    local dependencies=("openvpn", "iptables", "ip", "dig")
+    local dependencies=("openvpn" "iptables" "ip" "dig")
     for dep in "${dependencies[@]}"; do
         if ! command -v $dep &>/dev/null; then
             echo "Dependência não encontrada: $dep. Instale-a e tente novamente."

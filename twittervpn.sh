@@ -58,7 +58,7 @@ find_available_tun() {
 
 connect_vpn() {
     VPN_CONFIG="${VPN_FILES[$CURRENT_VPN_INDEX]}"
-    debug "Iniciando conexão VPN com $VPN_CONFIG..."
+    debug "VPN connection with $VPN_CONFIG..."
     VPN_AUTH_FILE=$(mktemp /tmp/vpn-auth.XXXXXX)
     echo -e "${VPN_USERNAME}\n${VPN_PASSWORD}" > $VPN_AUTH_FILE
     chmod 600 $VPN_AUTH_FILE
@@ -68,29 +68,29 @@ connect_vpn() {
     echo "comp-lzo no" >> $VPN_TEMP_CONFIG
     echo "auth-nocache" >> $VPN_TEMP_CONFIG
     VPN_INTERFACE=$(find_available_tun)
-    debug "Usando interface VPN: $VPN_INTERFACE"
+    debug "Using Interface VPN: $VPN_INTERFACE"
     sudo openvpn --config $VPN_TEMP_CONFIG --auth-user-pass $VPN_AUTH_FILE --daemon --log-append vpn.log --verb 4 --dev $VPN_INTERFACE
     if [[ $? -ne 0 ]]; then
-        debug "Erro ao iniciar o OpenVPN."
+        debug "Error to start OpenVPN."
         exit 1
     fi
-    debug "Esperando a interface VPN ser ativada..."
+    debug "Waiting VPN interface to be up..."
     TIMEOUT=30
     COUNTER=0
     while ! ip link show $VPN_INTERFACE &> /dev/null; do
         sleep 1
         COUNTER=$((COUNTER + 1))
-        debug "Esperando a interface VPN ser ativada..."
+        debug "Waiting tun interface to be up..."
         if [[ $COUNTER -ge $TIMEOUT ]]; then
-            debug "Tempo limite alcançado ao esperar pela interface VPN. Tentando novamente..."
+            debug "Time limit exceeded. Exiting..."
             cleanup
             return 1
         fi
     done
-    sudo ip route del 0.0.0.0/1 dev $VPN_INTERFACE 2>/dev/null && debug "Rota 0.0.0.0/1 removida."
-    sudo ip route del 128.0.0.0/1 dev $VPN_INTERFACE 2>/dev/null && debug "Rota 128.0.0.0/1 removida."
+    sudo ip route del 0.0.0.0/1 dev $VPN_INTERFACE 2>/dev/null && debug "Route 0.0.0.0/1 removed."
+    sudo ip route del 128.0.0.0/1 dev $VPN_INTERFACE 2>/dev/null && debug "Route 128.0.0.0/1 removed."
     rm $VPN_AUTH_FILE $VPN_TEMP_CONFIG
-    debug "Conexão VPN estabelecida com $VPN_CONFIG."
+    debug "VPN connection established with $VPN_CONFIG"
     for IP in $X_IPS; do
         sudo ip route add $IP dev $VPN_INTERFACE table 100
         sudo iptables -t mangle -A OUTPUT -d $IP -j MARK --set-mark 100

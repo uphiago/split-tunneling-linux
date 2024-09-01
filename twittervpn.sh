@@ -1,10 +1,10 @@
 #!/bin/bash
 
 check_dependencies() {
-    local dependencies=("openvpn" "iptables" "ip" "dig")
+    local dependencies=("openvpn" "iptables" "ip")
     for dep in "${dependencies[@]}"; do
         if ! command -v $dep &>/dev/null; then
-            echo "Dependência não encontrada: $dep. Instale-a e tente novamente."
+            echo "Dependence not found: $dep. Install it and try again."
             exit 1
         fi
     done
@@ -23,20 +23,20 @@ CURRENT_VPN_INDEX=0
 
 VPN_USERNAME="vpnbook"
 VPN_PASSWORD="b49dzh6"
-X_IPS=$(dig x.com +short)
+X_IPS="104.244.42.129 104.244.42.65 104.244.42.193 104.244.42.1"
 
 debug() {
     echo "[DEBUG] $1"
 }
 
 cleanup() {
-    debug "Terminando conexão VPN atual..."
+    debug "Terminating actual VPN connection..."
     sudo killall openvpn 2>/dev/null
     while pgrep -x "openvpn" > /dev/null; do
         sleep 1
-        debug "Esperando os processos do OpenVPN terminarem..."
+            debug "Waiting for the OpenVPN processes to finish..."
     done
-    debug "Conexão VPN terminada."
+    debug "VPN connection terminated."
     for IP in $X_IPS; do
         sudo ip route del $IP table 100 2>/dev/null
     done
@@ -45,7 +45,7 @@ cleanup() {
     for tun_interface in $(ip link show | grep -o "tun[0-9]"); do
         sudo ip link delete $tun_interface 2>/dev/null
     done
-    debug "Limpeza concluída."
+    debug "Cleanup completed."
 }
 
 find_available_tun() {
@@ -106,5 +106,5 @@ while true; do
     connect_vpn
     sleep 1800
     CURRENT_VPN_INDEX=$(( (CURRENT_VPN_INDEX + 1) % ${#VPN_FILES[@]} ))
-    debug "Alternando para a próxima configuração de VPN..."
+    debug "Alternating to the next VPN server..."
 done

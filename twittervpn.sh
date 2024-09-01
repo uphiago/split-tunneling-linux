@@ -123,6 +123,14 @@ connect_vpn() {
     for IP in "${TWITTER_IPS[@]}"; do
         sudo ip route add $IP dev $VPN_INTERFACE table 100
     done
+
+    # Marcar pacotes para o tráfego de saída de twitter.com e x.com
+    for IP in "${TWITTER_IPS[@]}"; do
+        sudo iptables -t mangle -A OUTPUT -d $IP -j MARK --set-mark 100
+    done
+
+    # Regras de roteamento para o tráfego marcado
+    sudo ip rule add fwmark 100 table 100
 }
 
 # Loop para alternar VPNs a cada 30 minutos

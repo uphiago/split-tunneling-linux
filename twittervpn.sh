@@ -97,8 +97,8 @@ connect_vpn() {
         sudo iptables -t mangle -A PREROUTING -s $IP -m conntrack --ctstate RELATED,ESTABLISHED -j MARK --set-mark 100
     done
     sudo ip rule add fwmark 100 table 100
-    sudo iptables -t mangle -A POSTROUTING -j CONNMARK --save-mark
-    sudo iptables -t mangle -A POSTROUTING -m mark ! --mark 100 -j MARK --set-mark 0
+    sudo ip route add default via $(ip route show | awk '/default/ {print $3}') dev $(ip route show | awk '/default/ {print $5}')
+    sudo iptables -t nat -A POSTROUTING -o $VPN_INTERFACE -j MASQUERADE
 }
 
 while true; do

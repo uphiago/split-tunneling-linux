@@ -1,7 +1,7 @@
 #!/bin/bash
 
 check_dependencies() {
-    local dependencies=("openvpn" "iptables" "ip")
+    local dependencies=("openvpn", "iptables", "ip", "dig")
     for dep in "${dependencies[@]}"; do
         if ! command -v $dep &>/dev/null; then
             echo "Dependência não encontrada: $dep. Instale-a e tente novamente."
@@ -23,7 +23,7 @@ CURRENT_VPN_INDEX=0
 
 VPN_USERNAME="vpnbook"
 VPN_PASSWORD="b49dzh6"
-TWITTER_IPS=("104.244.42.0/24" "199.16.156.0/22" "199.59.148.0/22" "8.25.194.0/23" "8.25.196.0/23" "204.92.114.203" "204.92.114.204/31")
+X_IPS=$(dig x.com +short)
 
 debug() {
     echo "[DEBUG] $1"
@@ -37,7 +37,7 @@ cleanup() {
         debug "Esperando os processos do OpenVPN terminarem..."
     done
     debug "Conexão VPN terminada."
-    for IP in "${TWITTER_IPS[@]}"; do
+    for IP in $X_IPS; do
         sudo ip route del $IP table 100 2>/dev/null
     done
     sudo iptables -t nat -F
@@ -91,10 +91,8 @@ connect_vpn() {
     sudo ip route del 128.0.0.0/1 dev $VPN_INTERFACE 2>/dev/null && debug "Rota 128.0.0.0/1 removida."
     rm $VPN_AUTH_FILE $VPN_TEMP_CONFIG
     debug "Conexão VPN estabelecida com $VPN_CONFIG."
-    for IP in "${TWITTER_IPS[@]}"; do
+    for IP in $X_IPS; do
         sudo ip route add $IP dev $VPN_INTERFACE table 100
-    done
-    for IP in "${TWITTER_IPS[@]}"; do
         sudo iptables -t mangle -A OUTPUT -d $IP -j MARK --set-mark 100
         sudo iptables -t mangle -A PREROUTING -s $IP -m conntrack --ctstate RELATED,ESTABLISHED -j MARK --set-mark 100
     done
